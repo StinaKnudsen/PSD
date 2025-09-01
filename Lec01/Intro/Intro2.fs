@@ -24,8 +24,8 @@ let cvalue = lookup env "c";;
 type expr = 
   | CstI of int
   | Var of string
-  | Prim of string * expr * expr;;
-  | If if expr * expr * expr
+  | Prim of string * expr * expr
+  | If of expr * expr * expr
 
 let e1 = CstI 17;;
 
@@ -71,7 +71,7 @@ let rec eval e (env : (string * int) list) : int =
         | "max" -> if i1 > i2 then i1 else i2
         | "min" -> if i1 < i2 then i1 else i2
         | "==" -> if i1 == i2 then 1 else 0
-        | _ -> failwith "unknown primitive";;
+        | _ -> failwith "unknown primitive"
     | If(e1, e2, e3)    -> if eval e1 env <> 0 then eval e2 env else eval e3 env
         
 
@@ -140,4 +140,12 @@ let rec simplify (a: aexpr) : aexpr =
     | _ -> a
 
 // added for 1.2 (v)
+let rec symDiff (a: aexpr) x : aexpr = 
+    match a with
+    | CstI i -> CstI 0
+    | Var e -> CstI 1
+    | CstI y when y <> x -> CstI 0
+    | Add (a1,a2) -> Add((symDiff a1 x),(symDiff a2 x))
+    | Sub (a1,a2) -> Sub((symDiff a1 x),(symDiff a2 x))
+    | Mul (a1,a2) -> Add (Mul(symDiff a1 x, a2),Mul(symDiff a2 x, a1))
 
