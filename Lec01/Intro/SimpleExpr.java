@@ -9,8 +9,8 @@ abstract class Expr {
   abstract public int eval(Map<String,Integer> env);
   abstract public String fmt();
   abstract public String fmt2(Map<String,Integer> env);
-  abstract public String toString();
-  abstract public Expr simplify();
+  abstract public String toString(); // Extended to add toString according to 1.4 (I)
+  abstract public Expr simplify(); // Added according to 1.4 (V)
 }
 
 class CstI extends Expr { 
@@ -24,6 +24,7 @@ class CstI extends Expr {
     return i;
   } 
 
+  // Added according to 1.4 (V)
   public Expr simplify(){
     return this;
   }
@@ -52,6 +53,7 @@ class Var extends Expr {
     return env.get(name);
   } 
 
+  // Added according to 1.4 (V)
   public Expr simplify(){
     return this;
   }
@@ -89,6 +91,7 @@ class Prim extends Expr {
       throw new RuntimeException("unknown primitive");
   } 
 
+  // Added according to 1.4 (V)
   public Expr simplify() {
     Expr e12 = e1.simplify();
     Expr e22 = e2.simplify();
@@ -144,9 +147,9 @@ public class SimpleExpr {
     Expr e2 = new Prim("+", new CstI(3), new Var("a"));
     Expr e3 = new Prim("+", new Prim("*", new Var("b"), new CstI(9)), 
 		            new Var("a"));
-    Expr e4 = new Prim("*", new Prim("+", new CstI(10), new CstI(5)), new CstI(2));
-    Expr e5 = new Prim("-", new Prim("+", new CstI(10), new CstI(5)), new CstI(2));
-    Expr e6 = new Prim("+", new Prim("*", new Prim("-", new CstI(10), new CstI(3)), new CstI(5)), new CstI(2));
+    Expr e4 = new Prim("*", new Prim("+", new CstI(10), new CstI(5)), new CstI(2)); // Added according to 1.4 (II)
+    Expr e5 = new Prim("-", new Prim("+", new CstI(10), new CstI(5)), new CstI(2)); // Added according to 1.4 (II)
+    Expr e6 = new Prim("+", new Prim("*", new Prim("-", new CstI(10), new CstI(3)), new CstI(5)), new CstI(2)); // Added according to 1.4 (II)
     Expr e7 = new Prim("+", new CstI(0), new Var("a")); // Example of simplifying
     Map<String,Integer> env0 = new HashMap<String,Integer>();
     env0.put("a", 3);
@@ -163,11 +166,11 @@ public class SimpleExpr {
     System.out.println("E3:");
     System.out.println(e3.fmt() + " = " + e3.fmt2(env0) + " = " + e3.eval(env0));
     System.out.println("E4:");
-    System.out.println(e4.fmt() + " = " + e4.fmt2(env0) + " = " + e4.eval(env0));
+    System.out.println(e4.fmt() + " = " + e4.fmt2(env0) + " = " + e4.eval(env0)); // Added example 1
     System.out.println("E5:");
-    System.out.println(e5.fmt() + " = " + e5.fmt2(env0) + " = " + e5.eval(env0));
+    System.out.println(e5.fmt() + " = " + e5.fmt2(env0) + " = " + e5.eval(env0)); // Added example 2
     System.out.println("E6:");
-    System.out.println(e6.fmt() + " = " + e6.fmt2(env0) + " = " + e6.eval(env0));
+    System.out.println(e6.fmt() + " = " + e6.fmt2(env0) + " = " + e6.eval(env0)); // Added example 3
     System.out.println("E7:");
     System.out.println(e7.fmt() + " = " + e7.simplify().fmt()); // Simplify example
   }
