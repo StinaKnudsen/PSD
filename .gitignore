@@ -1,3 +1,6 @@
 .vs
 
-.fsharp
+fsharp
+
+*.class
+*.DS_Store
