@@ -3,4 +3,6 @@
 fsharp
 
 *.class
+
 *.DS_Store
+/Lec01/Intro/CstI.class
