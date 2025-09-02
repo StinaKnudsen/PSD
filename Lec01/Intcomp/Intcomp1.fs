@@ -10,7 +10,7 @@ module Intcomp1
 type expr = 
   | CstI of int
   | Var of string
-  | Let of string * expr * expr
+  | Let of (string * expr) list * expr // Changed according to 2.1
   | Prim of string * expr * expr;;
 
 (* Some closed expressions: *)
@@ -49,10 +49,10 @@ let rec eval e (env : (string * int) list) : int =
     match e with
     | CstI i            -> i
     | Var x             -> lookup env x 
-    | Let(x, erhs, ebody) -> 
-      let xval = eval erhs env
-      let env1 = (x, xval) :: env 
-      eval ebody env1
+    | Let(lst, e1) -> // Added according to 2.1
+      match lst with
+      | (op, e2) :: tail -> eval (Prim(op, e2, (eval (Let tail e1) env))
+      | (op, e2) :: [] -> eval (Prim(op, e2, e1)) env
     | Prim("+", e1, e2) -> eval e1 env + eval e2 env
     | Prim("*", e1, e2) -> eval e1 env * eval e2 env
     | Prim("-", e1, e2) -> eval e1 env - eval e2 env
@@ -212,8 +212,10 @@ let rec freevars e : string list =
     match e with
     | CstI i -> []
     | Var x  -> [x]
-    | Let(x, erhs, ebody) -> 
-          union (freevars erhs, minus (freevars ebody, [x]))
+    | Let(lst, e1) ->
+          let right = List.fold (fun acc (_, e) -> union(acc, freevars e)) [] lst in
+          let left = minus(freevars e1, List.map fst lst) in
+          union(right, left)
     | Prim(ope, e1, e2) -> union (freevars e1, freevars e2);;
 
 (* Alternative definition of closed *)
@@ -246,9 +248,12 @@ let rec tcomp (e : expr) (cenv : string list) : texpr =
     match e with
     | CstI i -> TCstI i
     | Var x  -> TVar (getindex cenv x)
-    | Let(x, erhs, ebody) -> 
-      let cenv1 = x :: cenv 
-      TLet(tcomp erhs cenv, tcomp ebody cenv1)
+    | Let(lst, e) -> 
+      match lst with
+      | (op, e1) :: tail -> 
+        let cenv1 = op :: cenv 
+        TLet(tcomp e1 cenv, tcomp (Let(tail, e)) cenv1)
+      | (op, e1) :: [] -> tcomp e1 (op :: cenv)
     | Prim(ope, e1, e2) -> TPrim(ope, tcomp e1 cenv, tcomp e2 cenv);;
 
 (* Evaluation of target expressions with variable indexes.  The
