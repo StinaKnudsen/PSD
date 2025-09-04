@@ -50,9 +50,7 @@ let rec eval e (env : (string * int) list) : int =
     | CstI i            -> i
     | Var x             -> lookup env x 
     | Let(lst, e1) -> // Added according to 2.1
-      match lst with
-      | (op, e2) :: tail -> eval (Prim(op, e2, (eval (Let tail e1) env))
-      | (op, e2) :: [] -> eval (Prim(op, e2, e1)) env
+      List.fold (fun acc (var, e2) -> (var, (eval e2 env)) :: acc) env lst |> eval e1 
     | Prim("+", e1, e2) -> eval e1 env + eval e2 env
     | Prim("*", e1, e2) -> eval e1 env * eval e2 env
     | Prim("-", e1, e2) -> eval e1 env - eval e2 env
@@ -250,10 +248,10 @@ let rec tcomp (e : expr) (cenv : string list) : texpr =
     | Var x  -> TVar (getindex cenv x)
     | Let(lst, e) -> 
       match lst with
-      | (op, e1) :: tail -> 
-        let cenv1 = op :: cenv 
+      | (var, e1) :: tail -> 
+        let cenv1 = var :: cenv 
         TLet(tcomp e1 cenv, tcomp (Let(tail, e)) cenv1)
-      | (op, e1) :: [] -> tcomp e1 (op :: cenv)
+      | (var, e1) :: [] -> tcomp e1 (var :: cenv)
     | Prim(ope, e1, e2) -> TPrim(ope, tcomp e1 cenv, tcomp e2 cenv);;
 
 (* Evaluation of target expressions with variable indexes.  The
